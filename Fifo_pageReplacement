@@ -1,0 +1,83 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<stdbool.h>
+struct page_table
+{
+    int frame_index;
+    bool valid;
+}pi[50];
+void update_table(int page,int frame,bool status)
+{
+    pi[page].frame_index=frame;
+    pi[page].valid=status;
+}
+bool is_page_present(int page)
+{
+    if(pi[page].valid==true)
+    return true;
+return false;
+}
+void print_frame(int n,int frames[])
+{
+    for(int i=0;i<n;i++)
+    printf("%d ",frames[i]);
+    printf("\n");
+
+}
+int main()
+{
+    int page_num,frame_num;
+    int page_fault=0;
+    int current=0;
+    bool flag=true;
+    printf("How many process do you want to enter\n");
+    scanf("%d",&page_num);
+    int pages[page_num];
+    printf("Enter the process\n");
+    for(int i=0;i<page_num;i++)
+    {
+        scanf("%d",&pages[i]);
+    }
+    printf("What is the frame size\n");
+    scanf("%d",&frame_num);
+    int frames[frame_num];
+    for(int i=0;i<50;i++)
+    {
+        pi[i].valid=false;
+    }
+    for(int i=0;i<page_num;i++)
+    {
+        if(is_page_present(pages[i]))
+        continue;
+        else
+        {
+            page_fault++;
+            if(flag==true && current<frame_num)
+            {
+             frames[current]=pages[i];
+             print_frame(frame_num, frames);
+             update_table(pages[i],current,true);
+             current++;
+             if(current==frame_num)
+             {
+                current=0;
+                flag=false;
+             }
+            }
+            else
+            {
+              update_table(frames[current],current,false);
+              frames[current]=pages[i];
+              print_frame(frame_num, frames);
+              update_table(pages[i],current,true);
+              current=(current+1)%frame_num;
+
+            }
+        }
+    }
+    printf("page fault %d\n", page_fault);
+    printf("Page fault ratio %f\n", (float)page_fault / page_num);
+    printf("Page hit ratio %f\n", (float)(page_num - page_fault) / page_num);
+
+    return 0;
+}
