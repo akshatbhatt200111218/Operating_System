@@ -1,0 +1,105 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<stdbool.h>
+
+struct page_table
+{
+ int frame_index;
+ bool valid;
+ int last_access_time;
+}pt[50];
+int ispagepresent(int page)
+{
+    if(pt[page].valid==true)
+    return true;
+return false;
+}
+int update(int frame,int page,bool status,int access_time)
+{
+    pt[page].valid=status;
+    if(status==true)
+    {
+        pt[page].frame_index=frame;
+        pt[page].last_access_time=access_time;
+    }
+}
+int searchLRU(int frame[],int n,int *index)
+{
+    int min=32000;
+    for(int i=0;i<n;i++)
+    {
+        if(pt[frame[i]].last_access_time<min)
+        {
+        min=pt[frame[i]].last_access_time;
+        *index =i;
+        }
+    }
+    
+}
+int printFrame(int frame[],int n)
+{
+    for(int i=0;i<n;i++)
+    {
+        printf("%d\t",frame[i]);
+    }
+    printf("\n");
+}
+int main()
+{
+    int page_num,frame_size;
+    int flag=true;
+    int current=0,page_fault=0;
+
+    printf("How many values do you want to enter\n");
+    scanf("%d",&page_num);
+    int pages[page_num];
+    printf("Enter the values\n");
+    for(int i=0;i<page_num;i++)
+    {
+        scanf("%d",&pages[i]);
+    }
+    printf("What is the frame size\n");
+    scanf("%d",&frame_size);
+    int frames[frame_size];
+    for(int i=0;i<50;i++)
+    {
+        pt[i].valid=false;
+    }
+    for(int i=0;i<page_num;i++)
+    {
+        
+        if(ispagepresent(pages[i])==true)
+        continue;
+        else
+        {
+         page_fault++;
+         if(flag==true&&current<frame_size)
+         {
+            frames[current]=pages[i];
+            printFrame(frames ,frame_size);
+            update(current,pages[i],true,i);
+            current++;
+            if(current==frame_size)
+            {
+                flag==false;
+                current=0;
+
+            }
+         }
+         else
+         {
+            int indexLRU;
+            searchLRU(frames,frame_size,&indexLRU);
+            update(-1,frames[indexLRU],false,i);
+            frames[indexLRU]=pages[i];
+            printFrame(frames ,frame_size);
+            update(indexLRU,pages[i],true,i);
+         }
+        }
+        pt[pages[i]].last_access_time=i;
+    }
+    printf("Page fault : %d\n", page_fault);
+    printf("Page fault ratio  : %f\n", (float)page_fault/page_num);
+    printf("Page hit ratio : %f\n", (float)(page_num-page_fault)/page_num);
+    return 0;
+}
